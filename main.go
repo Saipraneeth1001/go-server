@@ -4,40 +4,28 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"encoding/json"
+	"github.com/gorilla/mux"
 )
 
-func helloHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "hello Rudra Deva")
+type Movie struct {
+	ID string `json:"id"`
+	Title string `json:"title"`
 }
 
-func formHandler(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm();
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
 
-	fmt.Fprintf(w, "post request successful")
-	name := r.FormValue("name")
-	address := r.FormValue("address")
+var movies []Movie
 
-	fmt.Fprintf(w, "name = %s\n", name)
-	fmt.Fprintf(w, "address = %s\n", address)
+func getMovies(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(movies)
 }
 
 func main() {
-
-	fileServer := http.FileServer(http.Dir("./static"))
-	http.Handle("/", fileServer)
-	http.HandleFunc("/hello", helloHandler)
-	http.HandleFunc("/form", formHandler)
-
-	fmt.Printf("Starting server at port 8080\n");
-	err := http.ListenAndServe(":8080", nil); 
-	if err != nil {
-        log.Fatal(err)
-    }
-
-
-
+	r := mux.NewRouter()
+	movies = append(movies, Movie{ID: "1", Title: "rrr"})
+	movies = append(movies, Movie{ID: "2", Title: "kgf2"})
+	r.HandleFunc("/movies", getMovies).Methods("GET")
+	fmt.Printf("Starting server on 8000\n")
+	log.Fatal(http.ListenAndServe(":8000", r))
 }
